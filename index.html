@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en_US">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <style type="text/css">
+      @media (prefers-color-scheme: light) {
+        html {
+          background-color: rgba(174, 178, 190, 1);
+          color: rgba(42, 44, 51, 1);
+        }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        html {
+          background-color: rgba(42, 44, 51, 1);
+          color: rgba(174, 178, 190, 1);
+        }
+      }
+    </style>
+    <script async src="/node_modules/es-module-shims/dist/es-module-shims.js"></script>
+  </head>
+  <body>
+    <script type="importmap">
+      {
+        "imports": {
+          "htm": "/node_modules/htm/dist/htm.mjs",
+          "htm/preact": "/node_modules/htm/preact/index.mjs",
+          "preact": "/node_modules/preact/dist/preact.mjs",
+          "preact/hooks": "/node_modules/preact/hooks/dist/hooks.mjs",
+          "router-preact": "/node_modules/router-preact/lib/esm/index.mjs",
+          "stylish-preact": "/node_modules/stylish-preact/lib/esm/index.mjs"
+        }
+      }
+    </script>
+    <script src="/index.mjs" type="module"></script>
+  </body>
+</html>
