@@ -1,7 +1,8 @@
+import { useEffect, useState } from 'preact/hooks';
+
 import { html } from 'htm/preact';
 import { render } from 'preact';
 import { stylish } from 'stylish-preact';
-import { useState } from 'preact/hooks';
 
 const Layout = stylish('div', `
   align-items: stretch;
@@ -235,9 +236,19 @@ const state = {
 const Application = () => {
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
 
+  useEffect(() => {
+    const { directory, name, type } = state.tabs[currentTabIndex];
+    if (type === 'file') {
+      document.title = `${name} - ${directory.replace(state.env.HOME, '~')}`;
+    } else {
+      document.title = name;
+    }
+  }, [currentTabIndex])
+
   const currentTab = state.tabs[currentTabIndex];
 
   return html`
+    <link rel="shortcut icon" href=${`/icons/${currentTab.icon || 'file'}.png`}/>
     <${Layout}>
       <${TitleBar}>
         <${TitleBarContent}>
