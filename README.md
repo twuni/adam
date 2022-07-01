@@ -4,6 +4,8 @@
 
 Adam is a reimplementation of the [Atom][1] text editor.
 
+[Demo][3]
+
 ## Why?
 
 Atom has been officially abandoned and its codebase has been rotting for the past two years.
@@ -25,3 +27,4 @@ Visit http://localhost:3000/ in a web browser.
 
 [1]: https://atom.io/
 [2]: https://nodejs.org/en/
+[3]: https://adam.twun.io/
