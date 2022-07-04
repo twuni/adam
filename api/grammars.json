@@ -1,0 +1,39 @@
+[
+  {
+    "icon": "file",
+    "matchExtensions": [
+      "html"
+    ],
+    "name": "HTML"
+  },
+  {
+    "icon": "file",
+    "matchExtensions": [
+      "js",
+      "mjs"
+    ],
+    "name": "JavaScript"
+  },
+  {
+    "icon": "file",
+    "matchExtensions": [
+      "json"
+    ],
+    "name": "JSON"
+  },
+  {
+    "icon": "file",
+    "matchExtensions": [
+      "yml",
+      "yaml"
+    ],
+    "name": "YAML"
+  },
+  {
+    "icon": "file",
+    "matchExtensions": [
+      "txt"
+    ],
+    "name": "Plain Text"
+  }
+]
