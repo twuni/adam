@@ -7,22 +7,33 @@ Menu.setApplicationMenu(Menu.buildFromTemplate([
     label: '&File',
     submenu: [
       {
-        accelerator: 'Control+W',
+        accelerator: 'CommandOrControl+W',
         click: () => {
           // FIXME: Ideally we wire this in to the renderer process's logic, but I haven't figured out how to do that, yet.
         },
         label: 'Close'
       },
       {
-        accelerator: 'Ctrl+Shift+I',
+        accelerator: 'CommandOrControl+Shift+I',
         role: 'toggleDevTools',
         label: 'Developer Tools'
       },
       {
-        accelerator: 'Ctrl+R',
+        accelerator: 'CommandOrControl+R',
         role: 'reload',
         label: 'Reload'
       }
+    ]
+  },
+  {
+    label: '&Edit',
+    submenu: [
+      { accelerator: 'CommandOrControl+Z', label: 'Undo', role: 'undo' },
+      { accelerator: 'CommandOrControl+Shift+Z', label: 'Redo', role: 'redo' },
+      { type: 'separator' },
+      { accelerator: 'CommandOrControl+X', label: 'Cut', role: 'cut' },
+      { accelerator: 'CommandOrControl+C', label: 'Copy', role: 'copy' },
+      { accelerator: 'CommandOrControl+V', label: 'Paste', role: 'paste' }
     ]
   }
 ]));

@@ -1,9 +1,9 @@
 import { useEffect } from 'preact/hooks';
 
-export const KeyboardShortcut = ({ matchKey, onTrigger }) => {
+export const KeyboardShortcut = ({ alt = false, command = false, control = false, matchKey, onTrigger, shift = false }) => {
   useEffect(() => {
     const onKeyPress = (event) => {
-      if (event.ctrlKey && event.key === matchKey) {
+      if (event.metaKey === command && event.altKey === alt && event.ctrlKey === control && event.shiftKey === shift && event.key === matchKey) {
         onTrigger();
       }
     };

@@ -53,6 +53,7 @@ const Edit = stylish('textarea', [
     rule: `
       background-color: #4b5362;
       border-radius: 4px;
+      cursor: pointer;
     `,
     states: ['::-webkit-scrollbar-thumb']
   },

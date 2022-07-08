@@ -33,7 +33,8 @@ export const FileSession = ({ onDirtyChange, onSave, text: initialText }) => {
   };
 
   return html`
-    <${KeyboardShortcut} matchKey="s" onTrigger=${save}/>
+    <${KeyboardShortcut} command matchKey="s" onTrigger=${save}/>
+    <${KeyboardShortcut} control matchKey="s" onTrigger=${save}/>
     <${Editor} currentLine=1 lineCount=${lineCount} onTextChange=${setText} text=${text}/>
   `;
 };

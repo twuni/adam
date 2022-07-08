@@ -25,7 +25,7 @@ export const Browse = ({ accept = '*', onOpen }) => {
   const onFilesSelect = async (event) => {
     await Promise.all(Array.from(input.current?.base?.files).map(async (file) => {
       const data = await file.text();
-      onOpen({ data, file, path: file.path });
+      onOpen({ data, file, path: file.path || `/${file.name}` });
     }));
     setBusy(false);
   };
@@ -33,12 +33,17 @@ export const Browse = ({ accept = '*', onOpen }) => {
   const openFile = () => {
     if (!busy) {
       setBusy(true);
-      input.current?.base?.showPicker();
+      if (input.current?.base?.showPicker) {
+        input.current?.base?.showPicker();
+      } else {
+        input.current?.base?.click();
+      }
     }
   };
 
   return html`
-    <${KeyboardShortcut} matchKey="o" onTrigger=${openFile}/>
+    <${KeyboardShortcut} command matchKey="o" onTrigger=${openFile}/>
+    <${KeyboardShortcut} control matchKey="o" onTrigger=${openFile}/>
     <${Input} accept=${accept} onInput=${onFilesSelect} ref=${input} type="file"/>
   `;
 };

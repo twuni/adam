@@ -9,18 +9,19 @@ import { useState } from 'preact/hooks';
 const Root = stylish('div');
 
 const Header = stylish('header', [
-  ({ open }) => `
+  ({ current, open }) => `
     align-items: center;
-    background-color: ${open ? '#3a3f4b' : 'transparent'};
-    color: ${open ? '#ffffff' : 'inherit'};
+    background-color: ${current ? '#3a3f4b' : 'transparent'};
+    color: ${current ? '#ffffff' : open ? '#ffffff' : 'inherit'};
     cursor: pointer;
     display: flex;
     flex-direction: row;
     font-size: 14px;
+    font-weight: ${current ? '400' : open ? '700' : '400'};
     height: 29px;
     line-height: 29px;
     transition-duration: 100ms;
-    transition-property: background-color, color;
+    transition-property: background-color, color, font-weight;
     transition-timing-function: ease-in-out;
     user-select: none;
   `,
@@ -58,6 +59,10 @@ const Indent = stylish('div', `
 const Label = stylish('label', `
   cursor: inherit;
   flex: 1;
+  height: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `);
 
 export const FolderEntry = ({ children, isOpenByDefault = false, path }) => {
@@ -83,9 +88,9 @@ export const FolderEntry = ({ children, isOpenByDefault = false, path }) => {
   `;
 };
 
-export const FileEntry = ({ icon, isOpen, onClick, path }) => html`
+export const FileEntry = ({ icon, isCurrent, isOpen, onClick, path }) => html`
   <${Root}>
-    <${Header} onClick=${onClick} open=${isOpen}>
+    <${Header} current=${isCurrent} onClick=${onClick} open=${isOpen}>
       <${Cell} style="visibility:hidden">
         <${Caret}/>
       <//>
@@ -126,21 +131,21 @@ const Layout = stylish('div', [
   }
 ]);
 
-export const FileTreeEntry = ({ isOpenByDefault = false, onFileOpen, openFiles = [], root }) => {
+export const FileTreeEntry = ({ currentFile, isOpenByDefault = false, onFileOpen, openFiles = [], root }) => {
   if (root.children) {
     return html`
       <${FolderEntry} isOpenByDefault=${isOpenByDefault} path=${root.path}>
-        ${root.children.map((it) => html`<${FileTreeEntry} onFileOpen=${onFileOpen} openFiles=${openFiles} root=${it}/>`)}
+        ${root.children.map((it) => html`<${FileTreeEntry} currentFile=${currentFile} onFileOpen=${onFileOpen} openFiles=${openFiles} root=${it}/>`)}
       <//>
     `;
   }
 
-  return html`<${FileEntry} isOpen=${openFiles.some((it) => it.path === root.path)} path=${root.path} onClick=${() => onFileOpen(root.path)}/>`;
+  return html`<${FileEntry} isCurrent=${currentFile && currentFile.path === root.path} isOpen=${openFiles.some((it) => it.path === root.path)} path=${root.path} onClick=${() => onFileOpen(root.path)}/>`;
 };
 
-export const FileTree = ({ onFileOpen, openFiles = [], root }) => html`
+export const FileTree = ({ currentFile, onFileOpen, openFiles = [], root }) => html`
   <${Layout}>
-    <${FileTreeEntry} isOpenByDefault onFileOpen=${onFileOpen} openFiles=${openFiles} root=${root}/>
+    <${FileTreeEntry} currentFile=${currentFile} isOpenByDefault onFileOpen=${onFileOpen} openFiles=${openFiles} root=${root}/>
   <//>
 `;
 

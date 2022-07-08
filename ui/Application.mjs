@@ -19,6 +19,14 @@ import { html } from 'htm/preact';
 import { render } from 'preact';
 import { stylish } from 'stylish-preact';
 
+const mockPrivileged = () => ({
+  env: () => Promise.resolve({}),
+  fileTree: (path) => Promise.resolve({ children: [], path }),
+  openFile: (path) => Promise.resolve(''),
+  quit: () => window.close(),
+  saveFile: (file) => Promise.resolve(file)
+});
+
 export const Root = stylish('div', `
   align-items: stretch;
   background-color: #21252b;
@@ -99,9 +107,12 @@ export const Application = () => {
   const [isDrawerOpen, setDrawerOpen] = useState(true);
   const [grammarLabel, setGrammarLabel] = useState();
   const [project, setProject] = useState();
+  const [electron, setElectron] = useState();
 
   useEffect(() => {
-    // TODO: privileged.env().then(async ({ HOME, PROJECT }) => setProject(await privileged.fileTree(PROJECT || HOME)));
+    if (!electron) {
+      setElectron(typeof privileged === 'undefined' ? mockPrivileged() : privileged);
+    }
   }, []);
 
   useEffect(() => {
@@ -110,7 +121,7 @@ export const Application = () => {
       const parentPath = selectedFile.path.replace(/^(.*)\/([^\/]+)$/g, '$1');
       if (parentPath) {
         if (!project || !parentPath.startsWith(project.path)) {
-          privileged.fileTree(parentPath).then((project) => setProject(project));
+          electron.fileTree(parentPath).then((project) => setProject(project));
         }
       }
     }
@@ -120,7 +131,7 @@ export const Application = () => {
     const selectedFile = files[selectedIndex];
     if (selectedFile) {
       const extension = selectedFile.path.replace(/^.+\.([^.]+)$/g, '$1');
-      const matchGrammar = grammars.find((grammar) => grammar.matchExtensions.includes(extension));
+      const matchGrammar = grammars.find((grammar) => grammar.matchExtensions.includes(extension)) || {};
 
       if (grammarLabel !== matchGrammar.label) {
         setGrammarLabel(matchGrammar.label);
@@ -140,7 +151,7 @@ export const Application = () => {
 
   const closeFile = (index) => {
     if (files.length < 1) {
-      privileged.quit();
+      electron.quit();
     } else {
       const effectiveIndex = typeof index === 'number' ? index : selectedIndex;
       const nextFiles = [...files];
@@ -161,7 +172,7 @@ export const Application = () => {
     const file = files[selectedIndex];
 
     if (file) {
-      await privileged.saveFile({ data: text, path: file.path });
+      await electron.saveFile({ data: text, path: file.path });
 
       const nextFiles = [...files];
       nextFiles[selectedIndex] = { data: text, path: file.path };
@@ -185,7 +196,7 @@ export const Application = () => {
     }
   };
 
-  const openPrivilegedFile = async (path) => onFileOpen({ data: await privileged.openFile(path), path });
+  const openPrivilegedFile = async (path) => onFileOpen({ data: await electron.openFile(path), path });
 
   const selectedFile = files[selectedIndex];
 
@@ -194,7 +205,7 @@ export const Application = () => {
       <${DrawerLayout}>
         <${Drawer} open=${project && isDrawerOpen}>
           <${DrawerTitle}>Project<//>
-          ${project && html`<${FileTree} onFileOpen=${openPrivilegedFile} openFiles=${files} root=${project}/>`}
+          ${project && html`<${FileTree} currentFile=${selectedFile} onFileOpen=${openPrivilegedFile} openFiles=${files} root=${project}/>`}
           <${Browse}
             accept=${grammars.reduce((extensions, grammar) => [
               ...extensions,
@@ -202,8 +213,10 @@ export const Application = () => {
             ], []).join(', ') || '*'}
             onOpen=${onFileOpen}
           />
-          <${KeyboardShortcut} matchKey="w" onTrigger=${closeFile}/>
-          <${KeyboardShortcut} matchKey="\\" onTrigger=${toggleDrawer}/>
+          <${KeyboardShortcut} command matchKey="w" onTrigger=${closeFile}/>
+          <${KeyboardShortcut} control matchKey="w" onTrigger=${closeFile}/>
+          <${KeyboardShortcut} command matchKey="\\" onTrigger=${toggleDrawer}/>
+          <${KeyboardShortcut} control matchKey="\\" onTrigger=${toggleDrawer}/>
         <//>
         <${Layout}>
           ${files.length > 0 ? html`
