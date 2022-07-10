@@ -109,16 +109,14 @@ const CloseButton = stylish('button', [
   }
 ]);
 
-export const Tab = ({ current, dirty, hint, icon, label, onClick, onClose }) => {
-  return html`
-    <${Layout} current=${current} onClick=${onClick}>
-      ${current && html`<${Indicator}/>`}
-      ${icon}
-      <${Label} title=${hint}>${label}<//>
-      ${dirty && html`<${Dot}/>`}
-      <${CloseButton} dirty=${dirty} onClick=${onClose}>⨯<//>
-    <//>
-  `;
-};
+export const Tab = ({ current, dirty, hint, icon, label, onClick, onClose }) => html`
+  <${Layout} current=${current} onClick=${onClick}>
+    ${current && html`<${Indicator}/>`}
+    ${icon}
+    <${Label} title=${hint}>${label}<//>
+    ${dirty && html`<${Dot}/>`}
+    <${CloseButton} dirty=${dirty} onClick=${onClose}>⨯<//>
+  <//>
+`;
 
 export default Tab;

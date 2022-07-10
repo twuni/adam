@@ -2,10 +2,13 @@
   "private": true,
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "test": "c8 --all --100 node ui/**.test.mjs"
   },
   "devDependencies": {
-    "electron": "^19.0.7"
+    "c8": "^7.11.3",
+    "electron": "^19.0.7",
+    "jsdom": "^20.0.0"
   },
   "dependencies": {
     "es-module-shims": "^1.5.8",

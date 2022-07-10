@@ -91,6 +91,8 @@ app.whenReady().then(() => {
   const window = new BrowserWindow({
     autoHideMenuBar: true,
     height: 1080,
+    icon: path.join(__dirname, 'icon.png'),
+    title: 'Adam',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     },
