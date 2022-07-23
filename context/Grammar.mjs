@@ -3,37 +3,43 @@ import { createContext } from 'preact';
 export const HTML = Object.freeze({
   icon: 'file',
   label: 'HTML',
-  matchExtensions: ['htm', 'html']
+  matchExtensions: ['htm', 'html'],
+  prism: 'html'
 });
 
 export const JavaScript = Object.freeze({
   icon: 'file',
   label: 'JavaScript',
-  matchExtensions: ['js', 'mjs']
+  matchExtensions: ['js', 'mjs'],
+  prism: 'javascript'
 });
 
 export const JSON = Object.freeze({
   icon: 'file',
   label: 'JSON',
-  matchExtensions: ['json']
+  matchExtensions: ['json'],
+  prism: 'json'
 });
 
 export const YAML = Object.freeze({
   icon: 'file',
   label: 'YAML',
-  matchExtensions: ['yml', 'yaml']
+  matchExtensions: ['yml', 'yaml'],
+  prism: 'yaml'
 });
 
 export const Markdown = Object.freeze({
   icon: 'file',
   label: 'Markdown',
-  matchExtensions: ['md', 'markdown']
+  matchExtensions: ['md', 'markdown'],
+  prism: 'markdown'
 });
 
 export const PlainText = Object.freeze({
   icon: 'file',
   label: 'Plain Text',
-  matchExtensions: ['txt']
+  matchExtensions: ['txt'],
+  prism: 'plaintext'
 });
 
 export const ALL = Object.freeze([

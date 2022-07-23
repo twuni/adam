@@ -5,7 +5,7 @@ import { KeyboardShortcut } from './KeyboardShortcut.mjs';
 
 import { html } from 'htm/preact';
 
-export const FileSession = ({ onDirtyChange, onSave, text: initialText }) => {
+export const FileSession = ({ grammar, onDirtyChange, onSave, text: initialText }) => {
   const [lineCount, setLineCount] = useState(initialText.split('\n').length);
   const [text, setText] = useState(initialText);
   const [isDirty, setDirty] = useState(false);
@@ -35,7 +35,7 @@ export const FileSession = ({ onDirtyChange, onSave, text: initialText }) => {
   return html`
     <${KeyboardShortcut} command matchKey="s" onTrigger=${save}/>
     <${KeyboardShortcut} control matchKey="s" onTrigger=${save}/>
-    <${Editor} currentLine=1 lineCount=${lineCount} onTextChange=${setText} text=${text}/>
+    <${Editor} currentLine=1 grammar=${grammar} lineCount=${lineCount} onTextChange=${setText} text=${text}/>
   `;
 };
 

@@ -46,7 +46,7 @@ The following is a quick rundown of current known issues and work to be done:
  * [ ] Ctrl+S on a file buffer without a corresponding file prompts for where to save the file
  * [ ] Drag files in the file tree to move them
  * [ ] Duplicate files in the file tree via right-click context menu
- * [ ] Syntax highlighting system
+ * [x] Syntax highlighting system
  * [ ] When cursor is at beginning of line, press tab to indent / shift+tab to unindent
  * [ ] When a selection spans multiple lines, press tab to indent / shift+tab to unindent
  * [ ] When a selection includes at least one character, press `{`, `(`, `[`, `"`, `'`, or `\`` to surround the selection in the corresponding matched pair

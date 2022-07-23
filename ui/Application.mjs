@@ -105,7 +105,7 @@ export const Application = () => {
   const [files, setFiles] = useState([]);
   const [dirtiness, setDirtiness] = useState([]);
   const [isDrawerOpen, setDrawerOpen] = useState(true);
-  const [grammarLabel, setGrammarLabel] = useState();
+  const [grammar, setGrammar] = useState();
   const [project, setProject] = useState();
   const [electron, setElectron] = useState();
 
@@ -133,8 +133,8 @@ export const Application = () => {
       const extension = selectedFile.path.replace(/^.+\.([^.]+)$/g, '$1');
       const matchGrammar = grammars.find((grammar) => grammar.matchExtensions.includes(extension)) || {};
 
-      if (grammarLabel !== matchGrammar.label) {
-        setGrammarLabel(matchGrammar.label);
+      if (grammar !== matchGrammar) {
+        setGrammar(matchGrammar);
       }
     }
   }, [grammars, files, selectedIndex]);
@@ -235,7 +235,7 @@ export const Application = () => {
             <//>
             ${selectedFile && html`
               <${Main}>
-                <${FileSession} key=${selectedFile.path} onDirtyChange=${dirtyFile} onSave=${saveFile} text=${selectedFile.data}/>
+                <${FileSession} grammar=${grammar} key=${selectedFile.path} onDirtyChange=${dirtyFile} onSave=${saveFile} text=${selectedFile.data}/>
               <//>
             `}
           ` : html`<${Empty}/>`}
@@ -247,7 +247,7 @@ export const Application = () => {
           <${Flex}/>
           <${StatusBarCell} title="Line Endings">Unix (LF)<//>
           <${StatusBarCell} title="Encoding">UTF-8<//>
-          ${grammarLabel && html`<${StatusBarCell} title="Syntax">${grammarLabel}<//>`}
+          ${grammar && html`<${StatusBarCell} title="Syntax">${grammar.label}<//>`}
         `}
       <//>
     <//>

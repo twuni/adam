@@ -1,3 +1,4 @@
+import { X } from './icons/X.mjs';
 import { html } from 'htm/preact';
 import { stylish } from 'stylish-preact';
 
@@ -85,6 +86,7 @@ const CloseButton = stylish('button', [
     font-size: 14px;
     font-weight: 700;
     height: 18px;
+    justify-content: center;
     line-height: 18px;
     margin: 0 8px 0 0;
     padding: 0;
@@ -115,7 +117,9 @@ export const Tab = ({ current, dirty, hint, icon, label, onClick, onClose }) => 
     ${icon}
     <${Label} title=${hint}>${label}<//>
     ${dirty && html`<${Dot}/>`}
-    <${CloseButton} dirty=${dirty} onClick=${onClose}>⨯<//>
+    <${CloseButton} dirty=${dirty} onClick=${onClose}>
+      <${X}/>
+    <//>
   <//>
 `;
 

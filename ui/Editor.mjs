@@ -1,6 +1,10 @@
+import { useContext, useEffect, useState } from 'preact/hooks';
+
+import { Highlighter } from '../context/Highlighter.mjs';
+
+import { createRef } from 'preact';
 import { html } from 'htm/preact';
 import { stylish } from 'stylish-preact';
-import { createRef } from 'preact';
 
 const Layout = stylish('div', `
   align-items: stretch;
@@ -30,17 +34,39 @@ const Edit = stylish('textarea', [
   `
     background: none;
     border-width: 0;
-    color: inherit;
-    flex: 1;
+    caret-color: #568af2;
+    color: transparent;
     font: inherit;
     line-height: inherit;
     margin: 0;
     outline: none;
-    overflow: auto;
+    overflow: hidden;
     padding: 0;
+    position: absolute;
     resize: none;
-    scrollbar-color: #4b5362;
-    scrollbar-width: thin;
+  `,
+  ({ height, width }) => [
+    height && `height: ${height}px;`,
+    width && `width: ${width}px;`
+  ].join('\n')
+]);
+
+const Highlighting = stylish('pre', `
+  font: inherit;
+  line-height: inherit;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
+`);
+
+const Layers = stylish('section', [
+  `
+    flex: 1;
+    overflow: auto;
+    position: relative;
   `,
   {
     rule: `
@@ -53,7 +79,6 @@ const Edit = stylish('textarea', [
     rule: `
       background-color: #4b5362;
       border-radius: 4px;
-      cursor: pointer;
     `,
     states: ['::-webkit-scrollbar-thumb']
   },
@@ -73,8 +98,37 @@ const lines = (n) => {
   return s;
 };
 
-export const Editor = ({ currentLine, lineCount, onTextChange, text }) => {
+export const Editor = ({ currentLine, grammar, lineCount, onTextChange, readonly, text }) => {
+  const highlight = useContext(Highlighter);
   const gutter = createRef();
+  const highlighting = createRef();
+  const editor = createRef();
+  const [dimensions, setDimensions] = useState({ height: 0, width: 0 });
+
+  useEffect(() => {
+    if (highlighting?.current?.base?.firstChild) {
+      const syntax = highlighting.current.base;
+      syntax.firstChild.innerHTML = highlight(text, grammar);
+    }
+  }, [grammar, text]);
+
+  useEffect(() => {
+    const syncDimensions = setInterval(() => {
+      const source = highlighting.current?.base;
+      const target = editor.current?.base;
+
+      if (source && target && (target.clientHeight !== source.clientHeight || target.clientWidth !== source.clientWidth)) {
+        setDimensions({
+          height: source.clientHeight,
+          width: source.clientWidth
+        });
+      }
+    }, 50);
+
+    return () => {
+      clearInterval(syncDimensions);
+    };
+  }, [editor, highlighting]);
 
   const syncGutter = (event) => {
     gutter.current.base.scrollTop = event.target.scrollTop;
@@ -83,23 +137,30 @@ export const Editor = ({ currentLine, lineCount, onTextChange, text }) => {
   return html`
     <${Layout}>
       <${Gutter} ref=${gutter}>${lines(lineCount)}<//>
-      <${Edit}
-        autocomplete="off"
-        autocorrect="off"
-        autoFocus
-        onFocus=${(event) => {
-          event.target.scrollTo(0, 0);
-          event.target.setSelectionRange(0, 0);
-        }}
-        onInput=${(event) => {
-          if (typeof onTextChange === 'function') {
-            onTextChange(event.target.value);
-          }
-        }}
-        onScroll=${syncGutter}
-        spellcheck=${false}
-        value=${text}
-      />
+      <${Layers} onScroll=${syncGutter}>
+        <${Edit}
+          autocomplete="off"
+          autocorrect="off"
+          autoFocus
+          height=${dimensions.height}
+          onFocus=${(event) => {
+            event.target.scrollTo(0, 0);
+            event.target.setSelectionRange(0, 0);
+          }}
+          onInput=${(event) => {
+            if (typeof onTextChange === 'function') {
+              onTextChange(event.target.value);
+            }
+          }}
+          ref=${editor}
+          spellcheck=${false}
+          value=${text}
+          width=${dimensions.width}
+        />
+        <${Highlighting} ref=${highlighting}>
+          <code/>
+        <//>
+      <//>
     <//>
   `;
 };
