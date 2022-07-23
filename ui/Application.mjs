@@ -19,6 +19,30 @@ import { html } from 'htm/preact';
 import { render } from 'preact';
 import { stylish } from 'stylish-preact';
 
+const saveState = ({ files, isDrawerOpen, selectedIndex }) => {
+  localStorage.setItem('Application.state', JSON.stringify({
+    files: files.map((it) => ({ path: it.path })),
+    isDrawerOpen,
+    selectedIndex
+  }));
+
+  return Promise.resolve();
+};
+
+const restoreState = async (privileged) => {
+  const state = JSON.parse(localStorage.getItem('Application.state') || '{"files":[],"isDrawerOpen":true,"selectedIndex":0}');
+
+  await Promise.all(state.files.map(async (it, index) => {
+    try {
+      it.data = await privileged.openFile(it.path);
+    } catch (error) {
+      state.files.splice(index, 1);
+    }
+  }));
+
+  return state;
+};
+
 const mockPrivileged = () => ({
   env: () => Promise.resolve({}),
   fileTree: (path) => Promise.resolve({ children: [], path }),
@@ -99,15 +123,25 @@ const toWindowTitle = (path) => [
 ].filter(Boolean).join(' ⁠— ');
 
 export const Application = () => {
-  const grammars = useContext(Grammar);
+  const matchGrammar = useContext(Grammar);
 
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState();
   const [dirtiness, setDirtiness] = useState([]);
   const [isDrawerOpen, setDrawerOpen] = useState(true);
   const [grammar, setGrammar] = useState();
   const [project, setProject] = useState();
   const [electron, setElectron] = useState();
+
+  useEffect(() => {
+    if (electron && !files) {
+      restoreState(electron).then(({ files, isDrawerOpen, selectedIndex }) => {
+        setFiles(files);
+        setDrawerOpen(Boolean(isDrawerOpen));
+        setSelectedIndex(selectedIndex);
+      });
+    }
+  }, [files, electron]);
 
   useEffect(() => {
     if (!electron) {
@@ -116,7 +150,14 @@ export const Application = () => {
   }, []);
 
   useEffect(() => {
-    const selectedFile = files[selectedIndex];
+    if (files) {
+      saveState({ files, isDrawerOpen, selectedIndex });
+    }
+  }, [files, isDrawerOpen, selectedIndex]);
+
+  useEffect(() => {
+    const selectedFile = (files || [])[selectedIndex];
+
     if (selectedFile) {
       const parentPath = selectedFile.path.replace(/^(.*)\/([^\/]+)$/g, '$1');
       if (parentPath) {
@@ -128,25 +169,25 @@ export const Application = () => {
   }, [files, selectedIndex]);
 
   useEffect(() => {
-    const selectedFile = files[selectedIndex];
-    if (selectedFile) {
-      const extension = selectedFile.path.replace(/^.+\.([^.]+)$/g, '$1');
-      const matchGrammar = grammars.find((grammar) => grammar.matchExtensions.includes(extension)) || {};
+    const selectedFile = (files || [])[selectedIndex];
 
-      if (grammar !== matchGrammar) {
-        setGrammar(matchGrammar);
+    if (selectedFile) {
+      const nextGrammar = matchGrammar(selectedFile.path);
+
+      if (!grammar || grammar.label !== nextGrammar.label) {
+        setGrammar(nextGrammar);
       }
     }
-  }, [grammars, files, selectedIndex]);
+  }, [matchGrammar, files, selectedIndex]);
 
   useEffect(() => {
-    if (files.length > 0 && selectedIndex >= files.length) {
+    if (files && files.length > 0 && selectedIndex >= files.length) {
       setSelectedIndex(files.length - 1);
     }
   }, [files, selectedIndex]);
 
   useEffect(() => {
-    document.title = toWindowTitle(files[selectedIndex]?.path);
+    document.title = toWindowTitle((files || [])[selectedIndex]?.path);
   }, [files, selectedIndex]);
 
   const closeFile = (index) => {
@@ -180,8 +221,14 @@ export const Application = () => {
     }
   };
 
+  const newFile = () => {
+    onFileOpen({ data: '', path: 'untitled' });
+  };
+
   const toggleDrawer = () => {
-    setDrawerOpen(!isDrawerOpen);
+    if (project) {
+      setDrawerOpen(!isDrawerOpen);
+    }
   };
 
   const onFileOpen = async (file) => {
@@ -198,7 +245,7 @@ export const Application = () => {
 
   const openPrivilegedFile = async (path) => onFileOpen({ data: await electron.openFile(path), path });
 
-  const selectedFile = files[selectedIndex];
+  const selectedFile = (files || [])[selectedIndex];
 
   return html`
     <${Root}>
@@ -207,19 +254,21 @@ export const Application = () => {
           <${DrawerTitle}>Project<//>
           ${project && html`<${FileTree} currentFile=${selectedFile} onFileOpen=${openPrivilegedFile} openFiles=${files} root=${project}/>`}
           <${Browse}
-            accept=${grammars.reduce((extensions, grammar) => [
+            accept=${matchGrammar().reduce((extensions, grammar) => [
               ...extensions,
               grammar.matchExtensions.map((extension) => `.${extension}`)
             ], []).join(', ') || '*'}
             onOpen=${onFileOpen}
           />
+          <${KeyboardShortcut} command matchKey="n" onTrigger=${newFile}/>
+          <${KeyboardShortcut} control matchKey="n" onTrigger=${newFile}/>
           <${KeyboardShortcut} command matchKey="w" onTrigger=${closeFile}/>
           <${KeyboardShortcut} control matchKey="w" onTrigger=${closeFile}/>
           <${KeyboardShortcut} command matchKey="\\" onTrigger=${toggleDrawer}/>
           <${KeyboardShortcut} control matchKey="\\" onTrigger=${toggleDrawer}/>
         <//>
         <${Layout}>
-          ${files.length > 0 ? html`
+          ${(files && files.length > 0) ? html`
             <${TabBar}>
               ${files.map((file, index) => html`
                 <${Tab}

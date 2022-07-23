@@ -22,6 +22,13 @@ describe('<Tab>', (it) => {
     assert.notDeepEqual(whenCurrent, whenNotCurrent);
   });
 
+  it('renders differently when dirty', (mount) => {
+    const { innerHTML: whenDirty } = mount(html`<${Tab} dirty/>`);
+    const { innerHTML: whenNotDirty } = mount(html`<${Tab}/>`);
+
+    assert.notDeepEqual(whenDirty, whenNotDirty);
+  });
+
   it('renders deterministically', (mount) => {
     const { innerHTML: a } = mount(html`<${Tab}/>`);
     const { innerHTML: b } = mount(html`<${Tab}/>`);
