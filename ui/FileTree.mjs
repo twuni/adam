@@ -24,7 +24,7 @@ const flash = keyframes`
 const Root = stylish('div');
 
 const Header = stylish('header', [
-  ({ current, open }) => `
+  ({ current, gitStatus, open }) => `
     align-items: center;
     cursor: pointer;
     display: flex;
@@ -44,6 +44,14 @@ const Header = stylish('header', [
       animation-iteration-count: 1;
       animation-name: ${flash};
       animation-timing-function: ease-in-out;
+    ` : `
+    `}
+
+    ${gitStatus === 'M' ? `
+      color: #e2c08d;
+    ` : gitStatus === '?' ? `
+      color: #73c990;
+    ` : current ? `
       color: #ffffff;
     ` : open ? `
       color: #ffffff;
@@ -121,7 +129,7 @@ const Layout = stylish('div', [
   }
 ]);
 
-export const FolderEntry = ({ children, isExpandedByDefault = false, openFiles, path }) => {
+export const FolderEntry = ({ children, git, isExpandedByDefault = false, openFiles, path }) => {
   const [isExpanded, setExpanded] = useState(isExpandedByDefault);
 
   const toggleExpanded = () => {
@@ -130,7 +138,7 @@ export const FolderEntry = ({ children, isExpandedByDefault = false, openFiles, 
 
   return html`
     <${Root}>
-      <${Header} open=${openFiles.some((it) => it.path.startsWith(path))} onClick=${toggleExpanded}>
+      <${Header} gitStatus=${git && (git.find((it) => it.path.startsWith(path)) || {}).status} open=${openFiles.some((it) => it.path.startsWith(path))} onClick=${toggleExpanded}>
         <${Cell} rotated=${isExpanded}>
           <${Caret}/>
         <//>
@@ -144,9 +152,9 @@ export const FolderEntry = ({ children, isExpandedByDefault = false, openFiles, 
   `;
 };
 
-export const FileEntry = ({ icon, isCurrent, isOpen, onClick, path }) => html`
+export const FileEntry = ({ gitStatus, icon, isCurrent, isOpen, onClick, path }) => html`
   <${Root}>
-    <${Header} current=${isCurrent} onClick=${onClick} open=${isOpen}>
+    <${Header} current=${isCurrent} gitStatus=${gitStatus} onClick=${onClick} open=${isOpen}>
       <${Cell} style="visibility:hidden">
         <${Caret}/>
       <//>
@@ -158,16 +166,16 @@ export const FileEntry = ({ icon, isCurrent, isOpen, onClick, path }) => html`
   <//>
 `;
 
-export const FileTreeEntry = ({ currentFile, isExpandedByDefault = false, onFileOpen, openFiles = [], root }) => {
+export const FileTreeEntry = ({ currentFile, git, isExpandedByDefault = false, onFileOpen, openFiles = [], root }) => {
   if (root.children) {
     return html`
-      <${FolderEntry} isExpandedByDefault=${openFiles.some((it) => it.path.startsWith(root.path))} openFiles=${openFiles} path=${root.path}>
-        ${root.children.map((it) => html`<${FileTreeEntry} currentFile=${currentFile} onFileOpen=${onFileOpen} openFiles=${openFiles} root=${it}/>`)}
+      <${FolderEntry} git=${root.git || git} isExpandedByDefault=${openFiles.some((it) => it.path.startsWith(root.path))} openFiles=${openFiles} path=${root.path}>
+        ${root.children.map((it) => html`<${FileTreeEntry} currentFile=${currentFile} git=${root.git || git} onFileOpen=${onFileOpen} openFiles=${openFiles} root=${it}/>`)}
       <//>
     `;
   }
 
-  return html`<${FileEntry} isCurrent=${currentFile && currentFile.path === root.path} isOpen=${openFiles.some((it) => it.path === root.path)} path=${root.path} onClick=${() => onFileOpen(root.path)}/>`;
+  return html`<${FileEntry} gitStatus=${git && (git.find((it) => it.path === root.path) || {}).status} isCurrent=${currentFile && currentFile.path === root.path} isOpen=${openFiles.some((it) => it.path === root.path)} path=${root.path} onClick=${() => onFileOpen(root.path)}/>`;
 };
 
 export const FileTree = ({ currentFile, onFileOpen, openFiles = [], root }) => html`

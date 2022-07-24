@@ -1,5 +1,6 @@
 const { BrowserWindow, Menu, app, dialog, ipcMain } = require('electron');
 const { opendir, readFile, writeFile } = require('node:fs/promises');
+const { exec } = require('node:child_process');
 const path = require('path');
 
 Menu.setApplicationMenu(Menu.buildFromTemplate([
@@ -38,6 +39,21 @@ Menu.setApplicationMenu(Menu.buildFromTemplate([
   }
 ]));
 
+const gitInspect = (rootPath) => new Promise((resolve, reject) => {
+  exec('git status --porcelain=v1', {
+    cwd: rootPath,
+    encoding: 'utf8'
+  }, (ignoredError, stdout) => {
+    resolve((stdout || '').split('\n').reduce((a, line) => {
+      if (line) {
+        const [staged, unstaged, repoPath] = (/^(.)(.) (.+)$/g).exec(line).slice(1);
+        a.push({ path: path.join(rootPath, repoPath), status: unstaged.trim() || staged.trim() });
+      }
+      return a;
+    }, []));
+  });
+});
+
 const traverse = async (rootPath) => {
   const parent = { children: [], path: rootPath };
   const base = await opendir(rootPath);
@@ -46,6 +62,10 @@ const traverse = async (rootPath) => {
 
   while (entry !== null) {
     if (entry.isDirectory()) {
+      if (entry.name === '.git') {
+        parent.git = await gitInspect(rootPath);
+      }
+
       parent.children.push(await traverse(path.join(rootPath, entry.name)));
     } else if (entry.isFile()) {
       parent.children.push(Object.freeze({ path: path.join(rootPath, entry.name) }));
