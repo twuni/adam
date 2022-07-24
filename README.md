@@ -4,6 +4,8 @@
 
 ![Adam Editor][5]
 
+![Screenshot][6]
+
 Adam is a reimplementation of the [Atom][1] text editor. At its core, it aims to look and feel much like Atom.
 It aims to be extensible, but with a very different philosophy to Atom. Whereas Atom is designed to be extensible
 at runtime through a dynamic and proprietary plugin model, Adam aims to be extensible by its architecture and leveraging
@@ -66,3 +68,4 @@ As this project matures beyond the initial prototype phase, so too will the proj
 [3]: https://adam.twun.io/
 [4]: https://github.com/electron/electron/releases/tag/v19.0.8
 [5]: https://raw.githubusercontent.com/twuni/adam/main/icon.png
+[6]: https://raw.githubusercontent.com/twuni/adam/main/screenshot.png
