@@ -84,6 +84,7 @@ export const Drawer = stylish('aside', ({ open }) => `
   transition-property: margin-right, opacity;
   transition-timing-function: ease-in-out;
   width: 300px;
+  z-index: ${open ? '0' : '-1'};
 `);
 
 export const DrawerTitle = stylish('header', `
