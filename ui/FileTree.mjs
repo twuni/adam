@@ -1,29 +1,55 @@
+import { keyframes, stylish } from 'stylish-preact';
+
 import { Caret } from './icons/Caret.mjs';
 import { File } from './icons/File.mjs';
 import { Folder } from './icons/Folder.mjs';
 
 import { html } from 'htm/preact';
-import { stylish } from 'stylish-preact';
 import { useState } from 'preact/hooks';
+
+const flash = keyframes`
+  0% {
+    background-color: transparent;
+  }
+
+  50% {
+    background-color: #568af2;
+  }
+
+  100% {
+    background-color: transparent;
+  }
+`;
 
 const Root = stylish('div');
 
 const Header = stylish('header', [
   ({ current, open }) => `
     align-items: center;
-    background-color: ${current ? '#3a3f4b' : 'transparent'};
-    color: ${current ? '#ffffff' : open ? '#ffffff' : 'inherit'};
     cursor: pointer;
     display: flex;
     flex-direction: row;
     font-size: 14px;
-    font-weight: ${current ? '400' : open ? '700' : '400'};
-    height: 29px;
-    line-height: 29px;
+    height: 25px;
+    line-height: 25px;
     transition-duration: 100ms;
     transition-property: background-color, color, font-weight;
     transition-timing-function: ease-in-out;
     user-select: none;
+    ${current ? `
+      animation-delay: 0;
+      animation-direction: normal;
+      animation-duration: 500ms;
+      animation-fill-mode: both;
+      animation-iteration-count: 1;
+      animation-name: ${flash};
+      animation-timing-function: ease-in-out;
+      color: #ffffff;
+    ` : open ? `
+      color: #ffffff;
+    ` : `
+      color: inherit;
+    `}
   `,
   {
     rule: ({ open }) => `
@@ -59,48 +85,12 @@ const Indent = stylish('div', `
 const Label = stylish('label', `
   cursor: inherit;
   flex: 1;
+  font-size: 13px;
   height: inherit;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 `);
-
-export const FolderEntry = ({ children, isOpenByDefault = false, path }) => {
-  const [isOpen, setOpen] = useState(isOpenByDefault);
-
-  const toggleOpen = () => {
-    setOpen(!isOpen);
-  };
-
-  return html`
-    <${Root}>
-      <${Header} onClick=${toggleOpen}>
-        <${Cell} rotated=${isOpen}>
-          <${Caret}/>
-        <//>
-        <${Cell}>
-          <${Folder}/>
-        <//>
-        <${Label}>${path.replace(/^.*\/([^\/]+)$/g, '$1')}<//>
-      <//>
-      ${isOpen && html`<${Indent}>${children}<//>`}
-    <//>
-  `;
-};
-
-export const FileEntry = ({ icon, isCurrent, isOpen, onClick, path }) => html`
-  <${Root}>
-    <${Header} current=${isCurrent} onClick=${onClick} open=${isOpen}>
-      <${Cell} style="visibility:hidden">
-        <${Caret}/>
-      <//>
-      <${Cell}>
-        ${icon || html`<${File}/>`}
-      <//>
-      <${Label}>${path.replace(/^.*\/([^\/]+)$/g, '$1')}<//>
-    <//>
-  <//>
-`;
 
 const Layout = stylish('div', [
   `
@@ -131,10 +121,47 @@ const Layout = stylish('div', [
   }
 ]);
 
-export const FileTreeEntry = ({ currentFile, isOpenByDefault = false, onFileOpen, openFiles = [], root }) => {
+export const FolderEntry = ({ children, isExpandedByDefault = false, openFiles, path }) => {
+  const [isExpanded, setExpanded] = useState(isExpandedByDefault);
+
+  const toggleExpanded = () => {
+    setExpanded(!isExpanded);
+  };
+
+  return html`
+    <${Root}>
+      <${Header} open=${openFiles.some((it) => it.path.startsWith(path))} onClick=${toggleExpanded}>
+        <${Cell} rotated=${isExpanded}>
+          <${Caret}/>
+        <//>
+        <${Cell}>
+          <${Folder}/>
+        <//>
+        <${Label}>${path.replace(/^.*\/([^\/]+)$/g, '$1')}<//>
+      <//>
+      ${isExpanded && html`<${Indent}>${children}<//>`}
+    <//>
+  `;
+};
+
+export const FileEntry = ({ icon, isCurrent, isOpen, onClick, path }) => html`
+  <${Root}>
+    <${Header} current=${isCurrent} onClick=${onClick} open=${isOpen}>
+      <${Cell} style="visibility:hidden">
+        <${Caret}/>
+      <//>
+      <${Cell}>
+        ${icon || html`<${File}/>`}
+      <//>
+      <${Label}>${path.replace(/^.*\/([^\/]+)$/g, '$1')}<//>
+    <//>
+  <//>
+`;
+
+export const FileTreeEntry = ({ currentFile, isExpandedByDefault = false, onFileOpen, openFiles = [], root }) => {
   if (root.children) {
     return html`
-      <${FolderEntry} isOpenByDefault=${isOpenByDefault} path=${root.path}>
+      <${FolderEntry} isExpandedByDefault=${openFiles.some((it) => it.path.startsWith(root.path))} openFiles=${openFiles} path=${root.path}>
         ${root.children.map((it) => html`<${FileTreeEntry} currentFile=${currentFile} onFileOpen=${onFileOpen} openFiles=${openFiles} root=${it}/>`)}
       <//>
     `;
@@ -145,7 +172,7 @@ export const FileTreeEntry = ({ currentFile, isOpenByDefault = false, onFileOpen
 
 export const FileTree = ({ currentFile, onFileOpen, openFiles = [], root }) => html`
   <${Layout}>
-    <${FileTreeEntry} currentFile=${currentFile} isOpenByDefault onFileOpen=${onFileOpen} openFiles=${openFiles} root=${root}/>
+    <${FileTreeEntry} currentFile=${currentFile} onFileOpen=${onFileOpen} openFiles=${openFiles} root=${root}/>
   <//>
 `;
 

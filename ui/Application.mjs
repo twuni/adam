@@ -1,5 +1,3 @@
-/* global privileged */
-
 import { StatusBar, StatusBarCell } from './StatusBar.mjs';
 import { FileEntry, FileTree, FolderEntry } from './FileTree.mjs';
 import { useContext, useEffect, useState } from 'preact/hooks';
@@ -11,6 +9,7 @@ import { Folder } from './icons/Folder.mjs';
 import { Flex } from './Flex.mjs';
 import { Grammar } from '../context/Grammar.mjs';
 import { KeyboardShortcut } from './KeyboardShortcut.mjs';
+import { Privileged } from '../context/Privileged.mjs';
 import { Tab } from './Tab.mjs';
 import { TabBar } from './TabBar.mjs';
 import { TabGutter } from './TabGutter.mjs';
@@ -42,14 +41,6 @@ const restoreState = async (privileged) => {
 
   return state;
 };
-
-const mockPrivileged = () => ({
-  env: () => Promise.resolve({}),
-  fileTree: (path) => Promise.resolve({ children: [], path }),
-  openFile: (path) => Promise.resolve(''),
-  quit: () => window.close(),
-  saveFile: (file) => Promise.resolve(file)
-});
 
 export const Root = stylish('div', `
   align-items: stretch;
@@ -125,6 +116,7 @@ const toWindowTitle = (path) => [
 
 export const Application = () => {
   const matchGrammar = useContext(Grammar);
+  const privileged = useContext(Privileged);
 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [files, setFiles] = useState();
@@ -132,23 +124,16 @@ export const Application = () => {
   const [isDrawerOpen, setDrawerOpen] = useState(true);
   const [grammar, setGrammar] = useState();
   const [project, setProject] = useState();
-  const [electron, setElectron] = useState();
 
   useEffect(() => {
-    if (electron && !files) {
-      restoreState(electron).then(({ files, isDrawerOpen, selectedIndex }) => {
+    if (!files) {
+      restoreState(privileged).then(({ files, isDrawerOpen, selectedIndex }) => {
         setFiles(files);
         setDrawerOpen(Boolean(isDrawerOpen));
         setSelectedIndex(selectedIndex);
       });
     }
-  }, [files, electron]);
-
-  useEffect(() => {
-    if (!electron) {
-      setElectron(typeof privileged === 'undefined' ? mockPrivileged() : privileged);
-    }
-  }, []);
+  }, [files, privileged]);
 
   useEffect(() => {
     if (files) {
@@ -163,7 +148,7 @@ export const Application = () => {
       const parentPath = selectedFile.path.replace(/^(.*)\/([^\/]+)$/g, '$1');
       if (parentPath) {
         if (!project || !parentPath.startsWith(project.path)) {
-          electron.fileTree(parentPath).then((project) => setProject(project));
+          privileged.fileTree(parentPath).then((project) => setProject(project));
         }
       }
     }
@@ -193,7 +178,7 @@ export const Application = () => {
 
   const closeFile = (index) => {
     if (files.length < 1) {
-      electron.quit();
+      privileged.quit();
     } else {
       const effectiveIndex = typeof index === 'number' ? index : selectedIndex;
       const nextFiles = [...files];
@@ -214,7 +199,7 @@ export const Application = () => {
     const file = files[selectedIndex];
 
     if (file) {
-      await electron.saveFile({ data: text, path: file.path });
+      await privileged.saveFile({ data: text, path: file.path });
 
       const nextFiles = [...files];
       nextFiles[selectedIndex] = { data: text, path: file.path };
@@ -244,7 +229,7 @@ export const Application = () => {
     }
   };
 
-  const openPrivilegedFile = async (path) => onFileOpen({ data: await electron.openFile(path), path });
+  const openPrivilegedFile = async (path) => onFileOpen({ data: await privileged.openFile(path), path });
 
   const selectedFile = (files || [])[selectedIndex];
 
