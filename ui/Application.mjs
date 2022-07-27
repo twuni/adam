@@ -42,6 +42,13 @@ const restoreState = async (privileged) => {
   return state;
 };
 
+export const Preview = stylish('img', `
+  flex: 1;
+  margin: 16px;
+  object-fit: contain;
+  overflow: hidden;
+`);
+
 export const Root = stylish('div', `
   align-items: stretch;
   background-color: #21252b;
@@ -270,7 +277,11 @@ export const Application = () => {
             <//>
             ${selectedFile && html`
               <${Main}>
-                <${FileSession} grammar=${grammar} key=${selectedFile.path} onDirtyChange=${dirtyFile} onSave=${saveFile} text=${selectedFile.data}/>
+                ${(/\.(jpe?g|png|gif|webp)$/g).test(selectedFile.path) ? html`
+                  <${Preview} src=${`file://${selectedFile.path}`}/>
+                ` : html`
+                  <${FileSession} grammar=${grammar} key=${selectedFile.path} onDirtyChange=${dirtyFile} onSave=${saveFile} text=${selectedFile.data}/>
+                `}
               <//>
             `}
           ` : html`<${Empty}/>`}
