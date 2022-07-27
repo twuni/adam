@@ -24,8 +24,12 @@ const flash = keyframes`
 const Root = stylish('div');
 
 const Header = stylish('header', [
-  ({ current, gitStatus, open }) => `
+  ({ current, gitStatus, ignored, open }) => `
     align-items: center;
+    border-color: ${current ? '#568af2' : 'transparent'};
+    border-style: solid;
+    border-width: 0 0 0 2px;
+    box-sizing: border-box;
     cursor: pointer;
     display: flex;
     flex-direction: row;
@@ -47,13 +51,17 @@ const Header = stylish('header', [
     ` : `
     `}
 
+    ${ignored ? `
+      opacity: 0.5;
+    ` : `
+      opacity: 1;
+    `}
+
     ${gitStatus === 'M' ? `
       color: #e2c08d;
     ` : gitStatus === '?' ? `
       color: #73c990;
     ` : current ? `
-      color: #ffffff;
-    ` : open ? `
       color: #ffffff;
     ` : `
       color: inherit;
@@ -129,7 +137,7 @@ const Layout = stylish('div', [
   }
 ]);
 
-export const FolderEntry = ({ children, git, isExpandedByDefault = false, openFiles, path }) => {
+export const FolderEntry = ({ children, git, ignoredFiles, isExpandedByDefault = false, openFiles, path }) => {
   const [isExpanded, setExpanded] = useState(isExpandedByDefault);
 
   const toggleExpanded = () => {
@@ -138,7 +146,7 @@ export const FolderEntry = ({ children, git, isExpandedByDefault = false, openFi
 
   return html`
     <${Root}>
-      <${Header} gitStatus=${git && (git.find((it) => it.path.startsWith(path)) || {}).status} open=${openFiles.some((it) => it.path.startsWith(path))} onClick=${toggleExpanded}>
+      <${Header} gitStatus=${git && (git.find((it) => it.path.startsWith(path)) || {}).status} ignored=${ignoredFiles.some((it) => it.path === path)} open=${openFiles.some((it) => it.path.startsWith(path))} onClick=${toggleExpanded}>
         <${Cell} rotated=${isExpanded}>
           <${Caret}/>
         <//>
@@ -152,9 +160,9 @@ export const FolderEntry = ({ children, git, isExpandedByDefault = false, openFi
   `;
 };
 
-export const FileEntry = ({ gitStatus, icon, isCurrent, isOpen, onClick, path }) => html`
+export const FileEntry = ({ gitStatus, icon, isCurrent, isIgnored, isOpen, onClick, path }) => html`
   <${Root}>
-    <${Header} current=${isCurrent} gitStatus=${gitStatus} onClick=${onClick} open=${isOpen}>
+    <${Header} current=${isCurrent} gitStatus=${gitStatus} ignored=${isIgnored} onClick=${onClick} open=${isOpen}>
       <${Cell} style="visibility:hidden">
         <${Caret}/>
       <//>
@@ -166,16 +174,25 @@ export const FileEntry = ({ gitStatus, icon, isCurrent, isOpen, onClick, path })
   <//>
 `;
 
-export const FileTreeEntry = ({ currentFile, git, isExpandedByDefault = false, onFileOpen, openFiles = [], root }) => {
+export const FileTreeEntry = ({ currentFile, git, ignoredFiles = [], isExpandedByDefault = false, onFileOpen, openFiles = [], root }) => {
   if (root.children) {
     return html`
-      <${FolderEntry} git=${root.git || git} isExpandedByDefault=${openFiles.some((it) => it.path.startsWith(root.path))} openFiles=${openFiles} path=${root.path}>
-        ${root.children.map((it) => html`<${FileTreeEntry} currentFile=${currentFile} git=${root.git || git} onFileOpen=${onFileOpen} openFiles=${openFiles} root=${it}/>`)}
+      <${FolderEntry} git=${root.git || git} ignoredFiles=${root.ignored || ignoredFiles} isExpandedByDefault=${openFiles.some((it) => it.path.startsWith(root.path))} openFiles=${openFiles} path=${root.path}>
+        ${root.children.map((it) => html`<${FileTreeEntry} currentFile=${currentFile} git=${root.git || git} ignoredFiles=${root.ignored || ignoredFiles} onFileOpen=${onFileOpen} openFiles=${openFiles} root=${it}/>`)}
       <//>
     `;
   }
 
-  return html`<${FileEntry} gitStatus=${git && (git.find((it) => it.path === root.path) || {}).status} isCurrent=${currentFile && currentFile.path === root.path} isOpen=${openFiles.some((it) => it.path === root.path)} path=${root.path} onClick=${() => onFileOpen(root.path)}/>`;
+  return html`
+    <${FileEntry}
+      gitStatus=${git && (git.find((it) => it.path === root.path) || {}).status}
+      isCurrent=${currentFile && currentFile.path === root.path}
+      isIgnored=${ignoredFiles.some((it) => it.path === root.path)}
+      isOpen=${openFiles.some((it) => it.path === root.path)}
+      path=${root.path}
+      onClick=${() => onFileOpen(root.path)}
+    />
+  `;
 };
 
 export const FileTree = ({ currentFile, onFileOpen, openFiles = [], root }) => html`

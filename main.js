@@ -39,7 +39,7 @@ Menu.setApplicationMenu(Menu.buildFromTemplate([
   }
 ]));
 
-const gitInspect = (rootPath) => new Promise((resolve, reject) => {
+const gitInspect = (rootPath) => new Promise((resolve) => {
   exec('git status --porcelain=v1', {
     cwd: rootPath,
     encoding: 'utf8'
@@ -47,10 +47,22 @@ const gitInspect = (rootPath) => new Promise((resolve, reject) => {
     resolve((stdout || '').split('\n').reduce((a, line) => {
       if (line) {
         const [staged, unstaged, repoPath] = (/^(.)(.) (.+)$/g).exec(line).slice(1);
-        a.push({ path: path.join(rootPath, repoPath), status: unstaged.trim() || staged.trim() });
+        a.push({
+          path: path.join(rootPath, repoPath),
+          status: unstaged.trim() || staged.trim()
+        });
       }
       return a;
     }, []));
+  });
+});
+
+const gitCheckIgnore = (rootPath, ...childPaths) => new Promise((resolve) => {
+  exec(`git check-ignore ${childPaths.map((it) => JSON.stringify(it)).join(' ')}`, {
+    cwd: rootPath,
+    encoding: 'utf8'
+  }, (ignoredError, stdout) => {
+    resolve(stdout.split('\n').filter(Boolean).map((path) => ({ path })));
   });
 });
 
@@ -74,6 +86,13 @@ const traverse = async (rootPath) => {
   }
 
   await base.close();
+
+  if (parent.git) {
+    parent.ignored = [
+      { path: path.join(rootPath, '.git') },
+      ...await gitCheckIgnore(rootPath, ...parent.children.map((it) => it.path))
+    ];
+  }
 
   parent.children.sort((a, b) => {
     if (a.children && !b.children) {
