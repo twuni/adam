@@ -55,7 +55,7 @@ The following is a quick rundown of current known issues and work to be done:
  * [ ] Sync cursor position to status bar
  * [ ] Ctrl+/ to comment or uncomment selected lines
  * [ ] When cursor position is at a character with a matching pair according to the current grammar, highlight the matching character
- * [ ] Color-coded file tree entries based on git status (new, added, ignored)
+ * [x] Color-coded file tree entries based on git status (new, added, ignored)
  * [ ] Color-coded file tree entries based on `.` prefix (canonical "hidden" treatment)
  * [ ] Rearrange open tabs via drag-and-drop
  * [ ] Highlight current line
