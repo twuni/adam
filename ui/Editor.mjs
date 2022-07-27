@@ -44,6 +44,7 @@ const Edit = stylish('textarea', [
     padding: 0;
     position: absolute;
     resize: none;
+    white-space: pre;
   `,
   ({ height, width }) => [
     height && `height: ${height}px;`,
@@ -55,10 +56,11 @@ const Highlighting = stylish('pre', `
   font: inherit;
   line-height: inherit;
   margin: 0;
-  overflow: hidden;
+  overflow: visible;
   padding: 0;
   pointer-events: none;
   position: relative;
+  white-space: pre;
   z-index: 1;
 `);
 
@@ -71,6 +73,7 @@ const Layers = stylish('section', [
   {
     rule: `
       background-color: transparent;
+      height: 8px;
       width: 8px;
     `,
     states: ['::-webkit-scrollbar']
@@ -117,10 +120,10 @@ export const Editor = ({ currentLine, grammar, lineCount, onTextChange, readonly
       const source = highlighting.current?.base;
       const target = editor.current?.base;
 
-      if (source && target && (target.clientHeight !== source.clientHeight || target.clientWidth !== source.clientWidth)) {
+      if (source && target && (target.scrollHeight !== source.scrollHeight || target.scrollWidth !== source.scrollWidth)) {
         setDimensions({
-          height: source.clientHeight,
-          width: source.clientWidth
+          height: source.scrollHeight,
+          width: source.scrollWidth
         });
       }
     }, 50);
