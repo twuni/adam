@@ -122,7 +122,7 @@ export const Editor = ({ currentLine, grammar, lineCount, onTextChange, readonly
 
       if (source && target && (target.scrollHeight !== source.scrollHeight || target.scrollWidth !== source.scrollWidth)) {
         setDimensions({
-          height: source.scrollHeight,
+          height: Math.max(source.scrollHeight, source.parentNode.clientHeight),
           width: source.scrollWidth
         });
       }
